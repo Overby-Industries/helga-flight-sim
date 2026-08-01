@@ -1,0 +1,27 @@
+# Godot
+.godot/
+godot/.godot/
+*.translation
+export_presets.cfg
+
+# GDExtension / SCons build artifacts
+*.exe
+*.x86_64
+*.a
+*.o
+*.os
+*.obj
+*.so
+*.dll
+*.lib
+*.exp
+*.pdb
+.sconsign.dblite
+godot/bin/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+.DS_Store
