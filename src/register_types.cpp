@@ -1,4 +1,7 @@
 #include "register_types.h"
+#include "flight_computer.h"
+#include "aero_surface.h"
+#include "aerodynamics.h"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
@@ -7,10 +10,12 @@
 
 using namespace godot;
 
-// TODO: register real GDExtension classes here as they're written --
-// e.g. the flight-computer FSM and the aerodynamics model.
 void initialize_helga_flight_sim_module(ModuleInitializationLevel p_level) {
     if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) return;
+
+    ClassDB::register_class<HelgaFlightComputer>();
+    ClassDB::register_class<HelgaAeroSurface>();
+    ClassDB::register_class<HelgaAerodynamics>();
 }
 
 void uninitialize_helga_flight_sim_module(ModuleInitializationLevel p_level) {
