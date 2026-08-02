@@ -16,7 +16,6 @@ godot/.godot/
 *.exp
 *.pdb
 .sconsign.dblite
-godot/bin/
 
 # IDE / OS
 .vscode/
