@@ -1,9 +1,11 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/aircraft_control.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/camera_rig.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/ground_tracking_camera.gd" id="3"]
 [ext_resource type="Script" path="res://scripts/replay_controller.gd" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="6"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_fuselage"]
 size = Vector3(3, 2, 14)
@@ -114,3 +116,13 @@ script = ExtResource("4")
 aircraft_path = NodePath("../HelgaAircraft")
 aerodynamics_path = NodePath("../HelgaAircraft/Aerodynamics")
 flight_computer_path = NodePath("../HelgaAircraft/FlightComputer")
+
+[node name="HUD" parent="." instance=ExtResource("5")]
+aircraft_path = NodePath("../HelgaAircraft")
+aerodynamics_path = NodePath("../HelgaAircraft/Aerodynamics")
+flight_computer_path = NodePath("../HelgaAircraft/FlightComputer")
+camera_rig_path = NodePath("../CameraRig")
+replay_controller_path = NodePath("../ReplayController")
+
+[node name="PauseMenu" parent="." instance=ExtResource("6")]
+replay_controller_path = NodePath("../ReplayController")
