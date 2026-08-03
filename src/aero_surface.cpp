@@ -27,7 +27,7 @@ HelgaAeroSurface::HelgaAeroSurface() {}
 
 HelgaAeroSurface::~HelgaAeroSurface() {}
 
-Vector3 HelgaAeroSurface::compute_force(const Vector3 &local_wind, double air_density, double control_input, double flap_deflection) const {
+Vector3 HelgaAeroSurface::compute_force(const Vector3 &local_wind, double air_density, double control_input, double flap_deflection, double rudder_input) const {
     double airspeed = local_wind.length();
     if (airspeed < 0.01 || air_density <= 0.0) {
         return Vector3();
@@ -77,6 +77,11 @@ Vector3 HelgaAeroSurface::compute_force(const Vector3 &local_wind, double air_de
 
     cd += std::fabs(flap_deflection) * (std::fabs(leading_edge_flap_gain) + std::fabs(trailing_edge_flap_gain)) * FLAP_DRAG_COEFFICIENT;
 
+    // Clamshell drag rudder: only the side whose yaw_drag_gain matches
+    // the sign of rudder_input opens (a real clamshell can't produce
+    // negative drag), so the other wing's surface stays clean.
+    cd += std::max(0.0, rudder_input * yaw_drag_gain) * yaw_drag_coefficient;
+
     Vector3 wind_dir = local_wind / airspeed;
     Vector3 drag_dir = -wind_dir;
     Vector3 lift_dir = Vector3(1.0, 0.0, 0.0).cross(wind_dir);
@@ -88,7 +93,7 @@ Vector3 HelgaAeroSurface::compute_force(const Vector3 &local_wind, double air_de
 }
 
 void HelgaAeroSurface::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("compute_force", "local_wind", "air_density", "control_input", "flap_deflection"), &HelgaAeroSurface::compute_force, DEFVAL(0.0));
+    ClassDB::bind_method(D_METHOD("compute_force", "local_wind", "air_density", "control_input", "flap_deflection", "rudder_input"), &HelgaAeroSurface::compute_force, DEFVAL(0.0), DEFVAL(0.0));
 
     ClassDB::bind_method(D_METHOD("get_elevator_gain"), &HelgaAeroSurface::get_elevator_gain);
     ClassDB::bind_method(D_METHOD("set_elevator_gain", "value"), &HelgaAeroSurface::set_elevator_gain);
@@ -96,10 +101,14 @@ void HelgaAeroSurface::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_aileron_gain", "value"), &HelgaAeroSurface::set_aileron_gain);
     ClassDB::bind_method(D_METHOD("get_rudder_gain"), &HelgaAeroSurface::get_rudder_gain);
     ClassDB::bind_method(D_METHOD("set_rudder_gain", "value"), &HelgaAeroSurface::set_rudder_gain);
+    ClassDB::bind_method(D_METHOD("get_yaw_drag_gain"), &HelgaAeroSurface::get_yaw_drag_gain);
+    ClassDB::bind_method(D_METHOD("set_yaw_drag_gain", "value"), &HelgaAeroSurface::set_yaw_drag_gain);
     ClassDB::bind_method(D_METHOD("get_leading_edge_flap_gain"), &HelgaAeroSurface::get_leading_edge_flap_gain);
     ClassDB::bind_method(D_METHOD("set_leading_edge_flap_gain", "value"), &HelgaAeroSurface::set_leading_edge_flap_gain);
     ClassDB::bind_method(D_METHOD("get_trailing_edge_flap_gain"), &HelgaAeroSurface::get_trailing_edge_flap_gain);
     ClassDB::bind_method(D_METHOD("set_trailing_edge_flap_gain", "value"), &HelgaAeroSurface::set_trailing_edge_flap_gain);
+    ClassDB::bind_method(D_METHOD("get_yaw_drag_coefficient"), &HelgaAeroSurface::get_yaw_drag_coefficient);
+    ClassDB::bind_method(D_METHOD("set_yaw_drag_coefficient", "value"), &HelgaAeroSurface::set_yaw_drag_coefficient);
     ClassDB::bind_method(D_METHOD("get_area"), &HelgaAeroSurface::get_area);
     ClassDB::bind_method(D_METHOD("set_area", "area"), &HelgaAeroSurface::set_area);
     ClassDB::bind_method(D_METHOD("get_lift_slope_per_rad"), &HelgaAeroSurface::get_lift_slope_per_rad);
@@ -120,8 +129,10 @@ void HelgaAeroSurface::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "elevator_gain", PROPERTY_HINT_RANGE, "-1,1,0.01"), "set_elevator_gain", "get_elevator_gain");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "aileron_gain", PROPERTY_HINT_RANGE, "-1,1,0.01"), "set_aileron_gain", "get_aileron_gain");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "rudder_gain", PROPERTY_HINT_RANGE, "-1,1,0.01"), "set_rudder_gain", "get_rudder_gain");
+    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "yaw_drag_gain", PROPERTY_HINT_RANGE, "-1,1,0.01"), "set_yaw_drag_gain", "get_yaw_drag_gain");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "leading_edge_flap_gain", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_leading_edge_flap_gain", "get_leading_edge_flap_gain");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "trailing_edge_flap_gain", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_trailing_edge_flap_gain", "get_trailing_edge_flap_gain");
+    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "yaw_drag_coefficient"), "set_yaw_drag_coefficient", "get_yaw_drag_coefficient");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "area"), "set_area", "get_area");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "lift_slope_per_rad"), "set_lift_slope_per_rad", "get_lift_slope_per_rad");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "stall_angle_deg"), "set_stall_angle_deg", "get_stall_angle_deg");

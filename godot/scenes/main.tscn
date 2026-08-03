@@ -70,7 +70,7 @@ shape = SubResource("BoxShape3D_fuselage")
 [node name="Aerodynamics" type="HelgaAerodynamics" parent="HelgaAircraft"]
 
 [node name="WingLeft" type="HelgaAeroSurface" parent="HelgaAircraft/Aerodynamics"]
-position = Vector3(-9, 0, 0.9)
+position = Vector3(-9, 0, 10.6)
 area = 100.0
 lift_slope_per_rad = 5.0
 stall_angle_deg = 16.0
@@ -78,13 +78,14 @@ stall_blend_range_deg = 8.0
 parasite_drag_coefficient = 0.02
 induced_drag_factor = 0.05
 control_effectiveness = 0.4
-elevator_gain = -1.0
+elevator_gain = -0.3
 aileron_gain = 1.0
+yaw_drag_gain = -1.0
 leading_edge_flap_gain = 1.0
 trailing_edge_flap_gain = 1.0
 
 [node name="WingRight" type="HelgaAeroSurface" parent="HelgaAircraft/Aerodynamics"]
-position = Vector3(9, 0, 0.9)
+position = Vector3(9, 0, 10.6)
 area = 100.0
 lift_slope_per_rad = 5.0
 stall_angle_deg = 16.0
@@ -92,29 +93,29 @@ stall_blend_range_deg = 8.0
 parasite_drag_coefficient = 0.02
 induced_drag_factor = 0.05
 control_effectiveness = 0.4
-elevator_gain = -1.0
+elevator_gain = -0.3
 aileron_gain = -1.0
+yaw_drag_gain = 1.0
 leading_edge_flap_gain = 1.0
 trailing_edge_flap_gain = 1.0
 
-[node name="RudderFin" type="HelgaAeroSurface" parent="HelgaAircraft/Aerodynamics"]
-position = Vector3(0, 1.8, 15.6)
-rotation_degrees = Vector3(0, 0, 90)
-area = 10.0
-lift_slope_per_rad = 4.0
-stall_angle_deg = 20.0
+[node name="BirdTailElevator" type="HelgaAeroSurface" parent="HelgaAircraft/Aerodynamics"]
+position = Vector3(0, 0.3, 21.8)
+area = 40.0
+lift_slope_per_rad = 4.5
+stall_angle_deg = 18.0
 stall_blend_range_deg = 10.0
-parasite_drag_coefficient = 0.015
+parasite_drag_coefficient = 0.02
 induced_drag_factor = 0.05
 control_effectiveness = 0.5
-rudder_gain = 1.0
+elevator_gain = -1.0
 
 [node name="LandingGear" type="Node3D" parent="HelgaAircraft"]
 script = ExtResource("7")
 leg_paths = [NodePath("NoseGear"), NodePath("LeftMainGear"), NodePath("RightMainGear")]
 
 [node name="NoseGear" type="Node3D" parent="HelgaAircraft/LandingGear"]
-position = Vector3(0, -1.2, -12.8)
+position = Vector3(0, -1.2, -9.15)
 
 [node name="StrutMesh" type="MeshInstance3D" parent="HelgaAircraft/LandingGear/NoseGear"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
@@ -127,7 +128,7 @@ mesh = SubResource("CylinderMesh_wheel")
 surface_material_override/0 = SubResource("StandardMaterial3D_gear")
 
 [node name="LeftMainGear" type="Node3D" parent="HelgaAircraft/LandingGear"]
-position = Vector3(-2.75, -1.09, 8.46)
+position = Vector3(-2.745, -1.085, 13.46)
 
 [node name="StrutMesh" type="MeshInstance3D" parent="HelgaAircraft/LandingGear/LeftMainGear"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
@@ -140,7 +141,7 @@ mesh = SubResource("CylinderMesh_wheel")
 surface_material_override/0 = SubResource("StandardMaterial3D_gear")
 
 [node name="RightMainGear" type="Node3D" parent="HelgaAircraft/LandingGear"]
-position = Vector3(2.75, -1.09, 8.46)
+position = Vector3(2.745, -1.085, 13.46)
 
 [node name="StrutMesh" type="MeshInstance3D" parent="HelgaAircraft/LandingGear/RightMainGear"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
@@ -153,7 +154,7 @@ mesh = SubResource("CylinderMesh_wheel")
 surface_material_override/0 = SubResource("StandardMaterial3D_gear")
 
 [node name="ChaseCamera" type="Camera3D" parent="HelgaAircraft"]
-position = Vector3(0, 10, 42)
+position = Vector3(0, 11, 48)
 rotation_degrees = Vector3(-13, 0, 0)
 current = true
 

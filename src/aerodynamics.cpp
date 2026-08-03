@@ -59,7 +59,7 @@ void HelgaAerodynamics::_physics_process(double p_delta) {
         double control_input = elevator * surface->get_elevator_gain()
             + aileron * surface->get_aileron_gain()
             + rudder * surface->get_rudder_gain();
-        Vector3 local_force = surface->compute_force(local_wind, air_density, control_input, flaps);
+        Vector3 local_force = surface->compute_force(local_wind, air_density, control_input, flaps, rudder);
         Vector3 world_force = surface_basis.xform(local_force);
 
         body->apply_force(world_force, offset);
