@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/aircraft_control.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/camera_rig.gd" id="2"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="6"]
 [ext_resource type="Script" path="res://scripts/landing_gear.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/orbit_camera.gd" id="8"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_fuselage"]
 size = Vector3(6, 5.2, 36.6)
@@ -167,9 +168,13 @@ position = Vector3(150, 5, -50)
 script = ExtResource("3")
 target_path = NodePath("../HelgaAircraft")
 
+[node name="OrbitCamera" type="Camera3D" parent="."]
+script = ExtResource("8")
+target_path = NodePath("../HelgaAircraft")
+
 [node name="CameraRig" type="Node" parent="."]
 script = ExtResource("2")
-camera_paths = Array[NodePath]([NodePath("../HelgaAircraft/ChaseCamera"), NodePath("../HelgaAircraft/CockpitCamera"), NodePath("../GroundTrackingCamera")])
+camera_paths = Array[NodePath]([NodePath("../HelgaAircraft/ChaseCamera"), NodePath("../HelgaAircraft/CockpitCamera"), NodePath("../GroundTrackingCamera"), NodePath("../OrbitCamera")])
 
 [node name="ReplayController" type="Node" parent="."]
 script = ExtResource("4")
