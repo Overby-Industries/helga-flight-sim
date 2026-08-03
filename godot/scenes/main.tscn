@@ -1,6 +1,9 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/aircraft_control.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/camera_rig.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/ground_tracking_camera.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/replay_controller.gd" id="4"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_fuselage"]
 size = Vector3(3, 2, 14)
@@ -48,6 +51,8 @@ surface_material_override/0 = SubResource("StandardMaterial3D_fuselage")
 
 [node name="FlightComputer" type="HelgaFlightComputer" parent="HelgaAircraft"]
 
+[node name="AudioController" type="HelgaAudioController" parent="HelgaAircraft"]
+
 [node name="Aerodynamics" type="HelgaAerodynamics" parent="HelgaAircraft"]
 
 [node name="WingLeft" type="HelgaAeroSurface" parent="HelgaAircraft/Aerodynamics"]
@@ -86,7 +91,26 @@ induced_drag_factor = 0.05
 control_effectiveness = 0.5
 rudder_gain = 1.0
 
-[node name="Camera3D" type="Camera3D" parent="HelgaAircraft"]
+[node name="ChaseCamera" type="Camera3D" parent="HelgaAircraft"]
 position = Vector3(0, 5, 20)
 rotation_degrees = Vector3(-15, 0, 0)
 current = true
+
+[node name="CockpitCamera" type="Camera3D" parent="HelgaAircraft"]
+position = Vector3(0, 0.4, -5.5)
+fov = 80.0
+
+[node name="GroundTrackingCamera" type="Camera3D" parent="."]
+position = Vector3(150, 5, -50)
+script = ExtResource("3")
+target_path = NodePath("../HelgaAircraft")
+
+[node name="CameraRig" type="Node" parent="."]
+script = ExtResource("2")
+camera_paths = Array[NodePath]([NodePath("../HelgaAircraft/ChaseCamera"), NodePath("../HelgaAircraft/CockpitCamera"), NodePath("../GroundTrackingCamera")])
+
+[node name="ReplayController" type="Node" parent="."]
+script = ExtResource("4")
+aircraft_path = NodePath("../HelgaAircraft")
+aerodynamics_path = NodePath("../HelgaAircraft/Aerodynamics")
+flight_computer_path = NodePath("../HelgaAircraft/FlightComputer")

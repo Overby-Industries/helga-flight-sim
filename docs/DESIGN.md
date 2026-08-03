@@ -173,6 +173,46 @@ narrative/feedback dressing (a prototype program collecting real
 engineering data), not a gameplay economy, and should stay lightweight
 enough that it doesn't turn into a second project.
 
+## Controls, audio, and cinematics tooling
+
+- **HOTAS input** (`godot/scripts/aircraft_control.gd`): reads a
+  connected joystick/throttle (tuned for a Thrustmaster T.16000M FCS +
+  TWCS Throttle pair -- stick on device 0, throttle on device 1),
+  falling back to keyboard when nothing's connected. Joystick axis
+  numbering isn't standardized across OS/driver combinations, so exact
+  axis indices are the one thing here that's a documented best guess,
+  not a verified fact -- press F12 in-game to print every connected
+  joypad's live axis values and adjust the constants at the top of that
+  script if a control feels backwards or unresponsive.
+- **Procedural audio** (`src/audio_controller.h/.cpp`,
+  `HelgaAudioController`): wind and engine/scramjet sound are
+  synthesized directly as PCM samples in C++ via
+  `AudioStreamGenerator`, driven every frame by real airspeed/throttle
+  rather than pre-recorded loops -- filtered noise for wind (cutoff
+  rises with airspeed), an oscillator-plus-noise blend for the engine
+  that shifts toward a rougher "scramjet" character above ~150 m/s. No
+  audio assets required; recorded samples can be layered in later for
+  extra fidelity.
+- **Cameras** (`godot/scripts/camera_rig.gd`,
+  `godot/scripts/ground_tracking_camera.gd`): a switchable rig (default
+  key: C) cycling chase / cockpit / ground-tracking views. The ground
+  tracking camera continuously looks at the aircraft and zooms its FOV
+  to keep it a roughly constant apparent size as distance changes --
+  like a real launch tracking telescope, wide at liftoff and
+  progressively more telephoto through ascent, orbit, and reentry. It's
+  a cinematic camera, not an optical simulation: it keeps "tracking"
+  even at distances a real ground telescope couldn't actually resolve,
+  which is the point for replay cinematography.
+- **Mission recording & replay** (`src/flight_recorder.h/.cpp`,
+  `godot/scripts/replay_controller.gd`): records the aircraft's
+  transform and control inputs every physics frame (R to toggle
+  recording, P to play back), and can save/load a recording to disk.
+  Replay works DCS/Tacview-style: the aircraft's physics freezes and
+  its transform is driven directly from the recording, while every
+  camera stays completely independent -- fly or switch cameras freely
+  over a replayed flight and capture the result (e.g. with OBS) without
+  the replay itself caring what's being looked at.
+
 ## Scope discipline
 
 Small and shippable, on purpose:
