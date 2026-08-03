@@ -8,12 +8,16 @@
 // aerospace ("blended wing body... double-delta planform with a cranked
 // leading edge... canted trailing edges... shallow camber") for the
 // qualitative shape, and the pilot's own aircraft-design-tool sketches
-// for the real numbers -- 100 ft (30.5 m) span, 60 ft (18.3 m) root
-// chord, 0.067 taper ratio, 4.167 aspect ratio, ~35.75 deg root-tip
-// sweep, 97,000 lb (~44,000 kg) mass. Default inner/outer sweep angles
-// below are chosen so the piecewise leading edge's overall root-to-tip
-// slope matches that reported sweep while still cranking noticeably
-// steeper inboard, matching the sketched sawtooth planform.
+// for the real numbers -- 100 ft (30.5 m) span, 0.067 taper ratio,
+// 4.167 aspect ratio, ~35.75 deg root-tip sweep, 97,000 lb (~44,000 kg)
+// mass. The sketches separately reported a 60 ft "Root Chord" for the
+// Main Wing surface itself, but the pilot confirmed the fuselage is
+// actually 120 ft (36.6 m) long overall -- longer than that wing-only
+// chord, giving the double-delta room to sweep back steeply without
+// running out of body length. inner/outer sweep angles below are tuned
+// (not derived from a reported figure) to use that extra length for a
+// pronounced double-delta taper rather than the shallow, barely-tapered
+// shape a shorter body would force.
 //
 // The hull is one continuous lofted surface rather than a separate
 // fuselage-plus-wing assembly: 5 spanwise stations
@@ -43,12 +47,12 @@ class HelgaAirframe : public MeshInstance3D {
     GDCLASS(HelgaAirframe, MeshInstance3D)
 
 private:
-    double fuselage_length = 18.3;          // meters, nose to tail (60 ft root chord)
+    double fuselage_length = 36.6;          // meters, nose to tail (120 ft)
     double wingspan = 30.5;                 // meters, tip to tip (100 ft)
     double crank_fraction = 0.3;            // fraction of half-span where LE sweep changes
-    double inner_sweep_deg = 60.0;          // strake leading-edge sweep, root to crank
-    double outer_sweep_deg = 16.0;          // wing-panel leading-edge sweep, crank to tip
-    double trailing_edge_cant_deg = 22.0;   // trailing edge sweeps forward toward the tip
+    double inner_sweep_deg = 68.0;          // strake leading-edge sweep, root to crank
+    double outer_sweep_deg = 38.0;          // wing-panel leading-edge sweep, crank to tip
+    double trailing_edge_cant_deg = 25.0;   // trailing edge sweeps forward toward the tip
     double body_height = 3.0;               // thickness at centerline
     double tip_thickness = 0.3;             // thickness at wingtip
     double camber = 0.3;                    // shallow upward camber offset, meters
