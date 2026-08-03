@@ -1,6 +1,6 @@
 # Project Helga (working title)
 
-[![Version](https://img.shields.io/badge/Version-1.0.1--Alpha-blue?style=for-the-badge&logo=github)](https://github.com/Overby-Industries/helga-flight-sim/releases)
+[![Version](https://img.shields.io/badge/Version-1.0.2--Alpha-blue?style=for-the-badge&logo=github)](https://github.com/Overby-Industries/helga-flight-sim/releases)
 [![Play on itch.io](https://img.shields.io/badge/Play_on-itch.io-fa5c5c?style=for-the-badge&logo=itchdotio)](https://aevoria-simulator.itch.io/project-helga-ssto-44-starlifter-ii-flight-simulator)
 
 A small, focused **flight simulator** built around Overby Industries'
