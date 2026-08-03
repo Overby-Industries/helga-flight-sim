@@ -162,6 +162,21 @@ simplified guessing game:
   on Godot's Forward+ renderer, volumetric fog/sky, and custom shaders
   for these -- not something the ported procedural-texture tool
   covers.
+- **Airframe visual pipeline**: the SSTO-44's hull started as a
+  procedural C++ mesh (`HelgaAirframe`, see `src/airframe.h`) as a
+  functional placeholder, but true visual realism (smooth compound
+  curves, panel lines, proper materials) is a better fit for real
+  modeling tools than hand-coded parametric geometry. Plan: wing/
+  fuselage geometry built and aero-validated in XFLR5, refined and
+  detailed in Blender, exported as glTF into `godot/models/`, and
+  swapped in via `HelgaAirframeVisual` (`godot/scripts/
+  airframe_visual.gd`) -- a thin wrapper that shows the procedural mesh
+  until an `imported_model` PackedScene is assigned, then hides it in
+  favor of the real one. The simulation code (aerodynamics/propulsion/
+  gear/flight computer) never references the visual mesh directly, so
+  this swap doesn't touch any of it. XFLR5's own wind-tunnel analysis
+  on the real geometry is also a source of real Cl/Cd/stall data to
+  replace `HelgaAeroSurface`'s currently-estimated tuning constants.
 
 ## Data collection (flight-test framing)
 
