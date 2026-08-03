@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scripts/aircraft_control.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/camera_rig.gd" id="2"]
@@ -6,15 +6,13 @@
 [ext_resource type="Script" path="res://scripts/replay_controller.gd" id="4"]
 [ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="6"]
+[ext_resource type="Script" path="res://scripts/landing_gear.gd" id="7"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_fuselage"]
-size = Vector3(3, 2, 14)
+size = Vector3(6, 5.2, 18.3)
 
-[sub_resource type="BoxMesh" id="BoxMesh_fuselage"]
-size = Vector3(3, 2, 14)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fuselage"]
-albedo_color = Color(0.55, 0.57, 0.6, 1)
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_gear_rolling"]
+friction = 0.02
 
 [sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_ground"]
 
@@ -23,6 +21,19 @@ size = Vector2(4000, 4000)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
 albedo_color = Color(0.3, 0.45, 0.28, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_strut"]
+top_radius = 0.1
+bottom_radius = 0.1
+height = 1.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_wheel"]
+top_radius = 0.45
+bottom_radius = 0.45
+height = 0.3
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gear"]
+albedo_color = Color(0.12, 0.12, 0.14, 1)
 
 [node name="Main" type="Node3D"]
 
@@ -40,26 +51,27 @@ mesh = SubResource("PlaneMesh_ground")
 surface_material_override/0 = SubResource("StandardMaterial3D_ground")
 
 [node name="HelgaAircraft" type="RigidBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
-mass = 12000.0
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+mass = 44000.0
+physics_material_override = SubResource("PhysicsMaterial_gear_rolling")
 script = ExtResource("1")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HelgaAircraft"]
 shape = SubResource("BoxShape3D_fuselage")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="HelgaAircraft"]
-mesh = SubResource("BoxMesh_fuselage")
-surface_material_override/0 = SubResource("StandardMaterial3D_fuselage")
+[node name="Airframe" type="HelgaAirframe" parent="HelgaAircraft"]
 
 [node name="FlightComputer" type="HelgaFlightComputer" parent="HelgaAircraft"]
 
 [node name="AudioController" type="HelgaAudioController" parent="HelgaAircraft"]
 
+[node name="Propulsion" type="HelgaPropulsion" parent="HelgaAircraft"]
+
 [node name="Aerodynamics" type="HelgaAerodynamics" parent="HelgaAircraft"]
 
 [node name="WingLeft" type="HelgaAeroSurface" parent="HelgaAircraft/Aerodynamics"]
-position = Vector3(-5, 0, 2.5)
-area = 18.0
+position = Vector3(-9, 0, 1.5)
+area = 100.0
 lift_slope_per_rad = 5.0
 stall_angle_deg = 16.0
 stall_blend_range_deg = 8.0
@@ -68,10 +80,12 @@ induced_drag_factor = 0.05
 control_effectiveness = 0.4
 elevator_gain = -1.0
 aileron_gain = 1.0
+leading_edge_flap_gain = 1.0
+trailing_edge_flap_gain = 1.0
 
 [node name="WingRight" type="HelgaAeroSurface" parent="HelgaAircraft/Aerodynamics"]
-position = Vector3(5, 0, 2.5)
-area = 18.0
+position = Vector3(9, 0, 1.5)
+area = 100.0
 lift_slope_per_rad = 5.0
 stall_angle_deg = 16.0
 stall_blend_range_deg = 8.0
@@ -80,11 +94,13 @@ induced_drag_factor = 0.05
 control_effectiveness = 0.4
 elevator_gain = -1.0
 aileron_gain = -1.0
+leading_edge_flap_gain = 1.0
+trailing_edge_flap_gain = 1.0
 
 [node name="RudderFin" type="HelgaAeroSurface" parent="HelgaAircraft/Aerodynamics"]
-position = Vector3(0, 1.0, 6.5)
+position = Vector3(0, 1.8, 8.0)
 rotation_degrees = Vector3(0, 0, 90)
-area = 4.0
+area = 10.0
 lift_slope_per_rad = 4.0
 stall_angle_deg = 20.0
 stall_blend_range_deg = 10.0
@@ -93,13 +109,56 @@ induced_drag_factor = 0.05
 control_effectiveness = 0.5
 rudder_gain = 1.0
 
+[node name="LandingGear" type="Node3D" parent="HelgaAircraft"]
+script = ExtResource("7")
+leg_paths = [NodePath("NoseGear"), NodePath("LeftMainGear"), NodePath("RightMainGear")]
+
+[node name="NoseGear" type="Node3D" parent="HelgaAircraft/LandingGear"]
+position = Vector3(0, -1.2, -6.4)
+
+[node name="StrutMesh" type="MeshInstance3D" parent="HelgaAircraft/LandingGear/NoseGear"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("CylinderMesh_strut")
+surface_material_override/0 = SubResource("StandardMaterial3D_gear")
+
+[node name="WheelMesh" type="MeshInstance3D" parent="HelgaAircraft/LandingGear/NoseGear"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, -1.0, 0)
+mesh = SubResource("CylinderMesh_wheel")
+surface_material_override/0 = SubResource("StandardMaterial3D_gear")
+
+[node name="LeftMainGear" type="Node3D" parent="HelgaAircraft/LandingGear"]
+position = Vector3(-2.75, -1.09, 4.3)
+
+[node name="StrutMesh" type="MeshInstance3D" parent="HelgaAircraft/LandingGear/LeftMainGear"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("CylinderMesh_strut")
+surface_material_override/0 = SubResource("StandardMaterial3D_gear")
+
+[node name="WheelMesh" type="MeshInstance3D" parent="HelgaAircraft/LandingGear/LeftMainGear"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, -1.0, 0)
+mesh = SubResource("CylinderMesh_wheel")
+surface_material_override/0 = SubResource("StandardMaterial3D_gear")
+
+[node name="RightMainGear" type="Node3D" parent="HelgaAircraft/LandingGear"]
+position = Vector3(2.75, -1.09, 4.3)
+
+[node name="StrutMesh" type="MeshInstance3D" parent="HelgaAircraft/LandingGear/RightMainGear"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("CylinderMesh_strut")
+surface_material_override/0 = SubResource("StandardMaterial3D_gear")
+
+[node name="WheelMesh" type="MeshInstance3D" parent="HelgaAircraft/LandingGear/RightMainGear"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, -1.0, 0)
+mesh = SubResource("CylinderMesh_wheel")
+surface_material_override/0 = SubResource("StandardMaterial3D_gear")
+
 [node name="ChaseCamera" type="Camera3D" parent="HelgaAircraft"]
-position = Vector3(0, 5, 20)
-rotation_degrees = Vector3(-15, 0, 0)
+position = Vector3(0, 9, 38)
+rotation_degrees = Vector3(-13, 0, 0)
 current = true
 
 [node name="CockpitCamera" type="Camera3D" parent="HelgaAircraft"]
-position = Vector3(0, 0.4, -5.5)
+position = Vector3(0, 1.0, -7.2)
 fov = 80.0
 
 [node name="GroundTrackingCamera" type="Camera3D" parent="."]
@@ -123,6 +182,8 @@ aerodynamics_path = NodePath("../HelgaAircraft/Aerodynamics")
 flight_computer_path = NodePath("../HelgaAircraft/FlightComputer")
 camera_rig_path = NodePath("../CameraRig")
 replay_controller_path = NodePath("../ReplayController")
+landing_gear_path = NodePath("../HelgaAircraft/LandingGear")
+propulsion_path = NodePath("../HelgaAircraft/Propulsion")
 
 [node name="PauseMenu" parent="." instance=ExtResource("6")]
 replay_controller_path = NodePath("../ReplayController")

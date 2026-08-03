@@ -55,6 +55,8 @@ private:
     double elevator_gain = 0.0;              // this surface's response to elevator input, -1..1
     double aileron_gain = 0.0;               // this surface's response to aileron input, -1..1
     double rudder_gain = 0.0;                // this surface's response to rudder input, -1..1
+    double leading_edge_flap_gain = 0.0;     // 0..1, how much of this surface is LE flap/slat
+    double trailing_edge_flap_gain = 0.0;    // 0..1, how much of this surface is TE flap
 
 protected:
     static void _bind_methods();
@@ -69,8 +71,14 @@ public:
     // for this surface (see HelgaAerodynamics::_physics_process) --
     // typically in roughly -1..1 but not hard-clamped, since a surface
     // that mixes e.g. full elevator and full aileron can exceed that.
+    // flap_deflection: 0..1 flap lever position, deployed symmetrically
+    // (not part of the elevator/aileron/rudder mix). Leading-edge flaps
+    // extend the usable stall angle (their real job -- delaying flow
+    // separation); trailing-edge flaps add effective camber/lift at the
+    // cost of extra drag. A surface with both gains at 0 (e.g. a pure
+    // rudder fin) is completely unaffected by flap_deflection.
     // Returns the aerodynamic force on this surface, in the same local frame.
-    Vector3 compute_force(const Vector3 &local_wind, double air_density, double control_input) const;
+    Vector3 compute_force(const Vector3 &local_wind, double air_density, double control_input, double flap_deflection = 0.0) const;
 
     double get_elevator_gain() const { return elevator_gain; }
     void set_elevator_gain(double p_value) { elevator_gain = p_value; }
@@ -78,6 +86,10 @@ public:
     void set_aileron_gain(double p_value) { aileron_gain = p_value; }
     double get_rudder_gain() const { return rudder_gain; }
     void set_rudder_gain(double p_value) { rudder_gain = p_value; }
+    double get_leading_edge_flap_gain() const { return leading_edge_flap_gain; }
+    void set_leading_edge_flap_gain(double p_value) { leading_edge_flap_gain = p_value; }
+    double get_trailing_edge_flap_gain() const { return trailing_edge_flap_gain; }
+    void set_trailing_edge_flap_gain(double p_value) { trailing_edge_flap_gain = p_value; }
 
     double get_area() const { return area_m2; }
     void set_area(double p_area) { area_m2 = p_area; }

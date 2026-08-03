@@ -43,6 +43,7 @@ private:
     double elevator = 0.0; // -1..1
     double aileron = 0.0;  // -1..1
     double rudder = 0.0;   // -1..1
+    double flaps = 0.0;    // 0..1, symmetric flap lever position
 
     double air_density_sea_level = 1.225;   // kg/m^3
     double atmosphere_scale_height = 8500.0; // meters
@@ -55,6 +56,7 @@ private:
     double sideslip_deg = 0.0;
 
     static double clamp_input(double p_value) { return p_value < -1.0 ? -1.0 : (p_value > 1.0 ? 1.0 : p_value); }
+    static double clamp_unit(double p_value) { return p_value < 0.0 ? 0.0 : (p_value > 1.0 ? 1.0 : p_value); }
 
 protected:
     static void _bind_methods();
@@ -72,6 +74,8 @@ public:
     void set_aileron(double p_value) { aileron = clamp_input(p_value); }
     double get_rudder() const { return rudder; }
     void set_rudder(double p_value) { rudder = clamp_input(p_value); }
+    double get_flaps() const { return flaps; }
+    void set_flaps(double p_value) { flaps = clamp_unit(p_value); }
 
     double get_air_density_sea_level() const { return air_density_sea_level; }
     void set_air_density_sea_level(double p_value) { air_density_sea_level = p_value; }

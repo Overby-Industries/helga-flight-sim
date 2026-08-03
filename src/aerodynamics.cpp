@@ -59,7 +59,7 @@ void HelgaAerodynamics::_physics_process(double p_delta) {
         double control_input = elevator * surface->get_elevator_gain()
             + aileron * surface->get_aileron_gain()
             + rudder * surface->get_rudder_gain();
-        Vector3 local_force = surface->compute_force(local_wind, air_density, control_input);
+        Vector3 local_force = surface->compute_force(local_wind, air_density, control_input, flaps);
         Vector3 world_force = surface_basis.xform(local_force);
 
         body->apply_force(world_force, offset);
@@ -87,6 +87,8 @@ void HelgaAerodynamics::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_aileron", "value"), &HelgaAerodynamics::set_aileron);
     ClassDB::bind_method(D_METHOD("get_rudder"), &HelgaAerodynamics::get_rudder);
     ClassDB::bind_method(D_METHOD("set_rudder", "value"), &HelgaAerodynamics::set_rudder);
+    ClassDB::bind_method(D_METHOD("get_flaps"), &HelgaAerodynamics::get_flaps);
+    ClassDB::bind_method(D_METHOD("set_flaps", "value"), &HelgaAerodynamics::set_flaps);
 
     ClassDB::bind_method(D_METHOD("get_air_density_sea_level"), &HelgaAerodynamics::get_air_density_sea_level);
     ClassDB::bind_method(D_METHOD("set_air_density_sea_level", "value"), &HelgaAerodynamics::set_air_density_sea_level);
@@ -100,6 +102,7 @@ void HelgaAerodynamics::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "elevator", PROPERTY_HINT_RANGE, "-1,1,0.01"), "set_elevator", "get_elevator");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "aileron", PROPERTY_HINT_RANGE, "-1,1,0.01"), "set_aileron", "get_aileron");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "rudder", PROPERTY_HINT_RANGE, "-1,1,0.01"), "set_rudder", "get_rudder");
+    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "flaps", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_flaps", "get_flaps");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "air_density_sea_level"), "set_air_density_sea_level", "get_air_density_sea_level");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "atmosphere_scale_height"), "set_atmosphere_scale_height", "get_atmosphere_scale_height");
 }

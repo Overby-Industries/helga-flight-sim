@@ -4,6 +4,8 @@
 #include "aerodynamics.h"
 #include "audio_controller.h"
 #include "flight_recorder.h"
+#include "airframe.h"
+#include "propulsion.h"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
@@ -20,6 +22,8 @@ void initialize_helga_flight_sim_module(ModuleInitializationLevel p_level) {
     ClassDB::register_class<HelgaAerodynamics>();
     ClassDB::register_class<HelgaAudioController>();
     ClassDB::register_class<HelgaFlightRecorder>();
+    ClassDB::register_class<HelgaAirframe>();
+    ClassDB::register_class<HelgaPropulsion>();
 }
 
 void uninitialize_helga_flight_sim_module(ModuleInitializationLevel p_level) {

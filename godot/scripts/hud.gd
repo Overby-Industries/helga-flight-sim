@@ -11,12 +11,16 @@ extends CanvasLayer
 @export var flight_computer_path: NodePath
 @export var camera_rig_path: NodePath
 @export var replay_controller_path: NodePath
+@export var landing_gear_path: NodePath
+@export var propulsion_path: NodePath
 
 var aircraft: HelgaAircraftControl
 var aerodynamics: HelgaAerodynamics
 var flight_computer: HelgaFlightComputer
 var camera_rig: HelgaCameraRig
 var replay_controller: HelgaReplayController
+var landing_gear: HelgaLandingGear
+var propulsion: HelgaPropulsion
 
 func _ready() -> void:
 	aircraft = get_node_or_null(aircraft_path) as HelgaAircraftControl
@@ -24,6 +28,8 @@ func _ready() -> void:
 	flight_computer = get_node_or_null(flight_computer_path) as HelgaFlightComputer
 	camera_rig = get_node_or_null(camera_rig_path) as HelgaCameraRig
 	replay_controller = get_node_or_null(replay_controller_path) as HelgaReplayController
+	landing_gear = get_node_or_null(landing_gear_path) as HelgaLandingGear
+	propulsion = get_node_or_null(propulsion_path) as HelgaPropulsion
 
 func _process(_delta: float) -> void:
 	if aircraft == null or aerodynamics == null:
@@ -43,6 +49,19 @@ func _process(_delta: float) -> void:
 	%AoaLabel.text = "AOA  %+5.1f deg" % aoa
 	%HeadingLabel.text = "HDG  %03d" % int(_heading_degrees())
 	%ThrottleLabel.text = "THR  %3d%%" % int(aircraft.throttle * 100.0)
+	%FlapsLabel.text = "FLP  %3d%%" % int(aerodynamics.flaps * 100.0)
+
+	if landing_gear != null:
+		if landing_gear.is_extended():
+			%GearLabel.text = "GEAR DOWN"
+		elif landing_gear.is_retracted():
+			%GearLabel.text = "GEAR UP"
+		else:
+			%GearLabel.text = "GEAR %3d%%" % int(landing_gear.get_extension_fraction() * 100.0)
+
+	if propulsion != null:
+		%ThrustLabel.text = "THRUST %4d kN" % int(propulsion.get_total_thrust() / 1000.0)
+		%PowerLabel.text = "PWR  %3d%%" % int(propulsion.get_power_reserve() * 100.0)
 
 	if camera_rig != null:
 		var cam := camera_rig.get_active_camera()
@@ -57,6 +76,11 @@ func _process(_delta: float) -> void:
 			%StatusLabel.modulate = Color(0.4, 0.7, 1.0)
 		else:
 			%StatusLabel.text = ""
+
+	if flight_computer != null and landing_gear != null:
+		var approaching_to_land := flight_computer.get_current_state() == HelgaFlightComputer.APPROACH \
+			or flight_computer.get_current_state() == HelgaFlightComputer.LANDING
+		%WarningLabel.text = "GEAR UP" if (approaching_to_land and not landing_gear.is_extended()) else ""
 
 func _heading_degrees() -> float:
 	var forward := -aircraft.global_transform.basis.z

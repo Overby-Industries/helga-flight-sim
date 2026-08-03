@@ -35,7 +35,7 @@ theme_override_colors/font_color = Color(0.4, 1.0, 0.55, 1)
 offset_left = 16.0
 offset_top = 66.0
 offset_right = 220.0
-offset_bottom = 260.0
+offset_bottom = 340.0
 theme_override_constants/separation = 4
 
 [node name="AirspeedLabel" type="Label" parent="Root/Instruments"]
@@ -62,6 +62,22 @@ text = "HDG  000"
 unique_name_in_owner = true
 text = "THR    0%"
 
+[node name="FlapsLabel" type="Label" parent="Root/Instruments"]
+unique_name_in_owner = true
+text = "FLP    0%"
+
+[node name="GearLabel" type="Label" parent="Root/Instruments"]
+unique_name_in_owner = true
+text = "GEAR DOWN"
+
+[node name="ThrustLabel" type="Label" parent="Root/Instruments"]
+unique_name_in_owner = true
+text = "THRUST    0 kN"
+
+[node name="PowerLabel" type="Label" parent="Root/Instruments"]
+unique_name_in_owner = true
+text = "PWR  100%"
+
 [node name="TopRight" type="VBoxContainer" parent="Root"]
 anchor_left = 1.0
 anchor_right = 1.0
@@ -83,16 +99,29 @@ horizontal_alignment = 2
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(1.0, 0.3, 0.3, 1)
 
+[node name="WarningLabel" type="Label" parent="Root"]
+unique_name_in_owner = true
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_top = 16.0
+offset_right = 200.0
+offset_bottom = 56.0
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(1.0, 0.2, 0.15, 1)
+text = ""
+horizontal_alignment = 1
+
 [node name="BottomHint" type="Label" parent="Root"]
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -280.0
+offset_left = -360.0
 offset_top = -34.0
-offset_right = 280.0
+offset_right = 360.0
 offset_bottom = -10.0
 theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(1, 1, 1, 0.7)
-text = "C: Camera    R: Record    P: Replay    F12: HOTAS Debug    Esc: Menu"
+text = "C: Camera    F: Flaps    G: Gear    R: Record    P: Replay    F12: HOTAS Debug    Esc: Menu"
 horizontal_alignment = 1

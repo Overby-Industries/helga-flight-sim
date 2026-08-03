@@ -1,7 +1,8 @@
 class_name HelgaAircraftControl
 extends RigidBody3D
-## Pilot input + propulsion for the aerodynamics model (see
-## src/aerodynamics.h / src/aero_surface.h).
+## Pilot input for the aerodynamics model (see src/aerodynamics.h /
+## src/aero_surface.h) and the unified propulsion controller (see
+## src/propulsion.h).
 ##
 ## Reads a HOTAS if one is connected (tuned for a Thrustmaster T.16000M
 ## FCS stick + TWCS Throttle pair), falling back to keyboard so the game
@@ -11,10 +12,9 @@ extends RigidBody3D
 ## press F12 in-game to print every connected joypad's live axis values
 ## to the console and adjust the constants below to match.
 ##
-## Real control mapping (rebindable settings, curves) and Helga's actual
-## hybrid ABEP/MHD-Lorentz/ionic-liquid propulsion (see docs/DESIGN.md)
-## are future work -- this is a plain forward thrust force so the flight
-## model can actually be flown and tuned now.
+## Real control mapping (rebindable settings, curves) is future work --
+## throttle is a plain 0..1 lever handed to HelgaPropulsion, which is
+## where the actual ABEP/MHD-Lorentz/IL-afterburner blending happens.
 ##
 ## First-flight note: elevator/aileron sign was derived from the wing
 ## placement aft of the center of mass (see aero_surface.h/aerodynamics
@@ -23,8 +23,13 @@ extends RigidBody3D
 ## aileron_gain in the wing nodes.
 
 @onready var aerodynamics: HelgaAerodynamics = $Aerodynamics
+@onready var propulsion: HelgaPropulsion = $Propulsion
 
-@export var max_thrust_newtons: float = 180000.0
+## Flap lever stages -- F cycles through these in order (up, takeoff/
+## approach, landing), like the discrete flap settings on a real
+## airliner rather than a continuously variable lever.
+const FLAP_STAGES: Array[float] = [0.0, 0.5, 1.0]
+var flap_stage_index: int = 0
 
 ## Godot's named JOY_AXIS_* constants (LEFT_X/LEFT_Y/RIGHT_X/RIGHT_Y/
 ## TRIGGER_LEFT/TRIGGER_RIGHT) describe a standard gamepad, not a HOTAS --
@@ -93,13 +98,16 @@ func _physics_process(delta: float) -> void:
 	aerodynamics.elevator = pitch_input
 	aerodynamics.aileron = roll_input
 	aerodynamics.rudder = yaw_input
+	aerodynamics.flaps = FLAP_STAGES[flap_stage_index]
 
-	var forward := -global_transform.basis.z
-	apply_central_force(forward * throttle * max_thrust_newtons)
+	propulsion.throttle = throttle
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.physical_keycode == KEY_F12:
-		_print_joypad_debug_info()
+	if event is InputEventKey and event.pressed:
+		if event.physical_keycode == KEY_F12:
+			_print_joypad_debug_info()
+		elif event.physical_keycode == KEY_F:
+			flap_stage_index = (flap_stage_index + 1) % FLAP_STAGES.size()
 
 func _print_joypad_debug_info() -> void:
 	var devices := Input.get_connected_joypads()
