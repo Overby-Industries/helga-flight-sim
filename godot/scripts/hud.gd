@@ -16,6 +16,7 @@ extends CanvasLayer
 @export var reentry_system_path: NodePath
 @export var comms_controller_path: NodePath
 @export var gravity_path: NodePath
+@export var autopilot_path: NodePath
 
 var aircraft: HelgaAircraftControl
 var aerodynamics: HelgaAerodynamics
@@ -27,6 +28,7 @@ var propulsion: HelgaPropulsion
 var reentry_system: HelgaReentrySystem
 var comms_controller: HelgaCommsController
 var gravity: HelgaGravity
+var autopilot: HelgaAutopilot
 
 ## States where the reentry corridor instruments are relevant -- see
 ## src/reentry_system.h's class comment for what arms the mechanic itself.
@@ -53,6 +55,7 @@ func _ready() -> void:
 	propulsion = get_node_or_null(propulsion_path) as HelgaPropulsion
 	reentry_system = get_node_or_null(reentry_system_path) as HelgaReentrySystem
 	gravity = get_node_or_null(gravity_path) as HelgaGravity
+	autopilot = get_node_or_null(autopilot_path) as HelgaAutopilot
 	comms_controller = get_node_or_null(comms_controller_path) as HelgaCommsController
 
 func _process(_delta: float) -> void:
@@ -123,6 +126,16 @@ func _process(_delta: float) -> void:
 			%DynamicPressureLabel.modulate = corridor_color
 			%HeatFluxLabel.modulate = corridor_color
 			%CorridorLabel.modulate = corridor_color
+
+			# Fly-to indicator against the pre-approved reentry profile --
+			# see reentry_flight_plan.gd. Positive = flying steeper than
+			# planned, negative = shallower.
+			var deviation := HelgaReentryFlightPlan.get_deviation_deg(altitude, reentry_system.get_flight_path_angle_deg())
+			var deviation_word := "STEEP" if deviation > 0.0 else "SHALLOW"
+			%ProfileLabel.text = "PROFILE   %+4.1f deg %s" % [deviation, deviation_word if absf(deviation) > 0.3 else ""]
+			%ProfileLabel.modulate = Color(0.4, 1.0, 0.55, 1) if absf(deviation) <= 1.0 else Color(1.0, 0.85, 0.3, 1)
+
+			%AutopilotLabel.visible = autopilot != null and autopilot.is_engaged()
 
 	if comms_controller != null:
 		%CommsLogLabel.text = "\n".join(comms_controller.get_log_lines())

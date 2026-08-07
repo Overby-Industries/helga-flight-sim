@@ -78,6 +78,8 @@ script = ExtResource("9")
 
 [node name="Gravity" type="HelgaGravity" parent="HelgaAircraft"]
 
+[node name="Autopilot" type="HelgaAutopilot" parent="HelgaAircraft"]
+
 [node name="Propulsion" type="HelgaPropulsion" parent="HelgaAircraft"]
 
 [node name="ReentrySystem" type="HelgaReentrySystem" parent="HelgaAircraft"]
@@ -217,6 +219,7 @@ propulsion_path = NodePath("../HelgaAircraft/Propulsion")
 reentry_system_path = NodePath("../HelgaAircraft/ReentrySystem")
 comms_controller_path = NodePath("../CommsController")
 gravity_path = NodePath("../HelgaAircraft/Gravity")
+autopilot_path = NodePath("../HelgaAircraft/Autopilot")
 
 [node name="PauseMenu" parent="." instance=ExtResource("6")]
 replay_controller_path = NodePath("../ReplayController")

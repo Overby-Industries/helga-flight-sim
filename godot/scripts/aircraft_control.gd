@@ -26,12 +26,27 @@ extends RigidBody3D
 @onready var propulsion: HelgaPropulsion = $Propulsion
 @onready var flight_computer: HelgaFlightComputer = $FlightComputer
 @onready var gravity: HelgaGravity = $Gravity
+@onready var reentry_system: HelgaReentrySystem = $ReentrySystem
+@onready var autopilot: HelgaAutopilot = $Autopilot
 
 @export var preflight_checklist_path: NodePath
 var preflight_checklist: HelgaPreflightChecklist
 
+## Autopilot recovery mode: engages automatically on a missed reentry
+## approach (STATE_SHALLOW_REENTRY_CONTINGENCY, see src/autopilot.h and
+## src/flight_computer.h) and disengages automatically on leaving that
+## state. O also toggles it manually at any time, the way a real
+## autopilot disconnect works, in case the pilot wants to fly the
+## recovery by hand or re-engage early.
 func _ready() -> void:
 	preflight_checklist = get_node_or_null(preflight_checklist_path) as HelgaPreflightChecklist
+	flight_computer.state_changed.connect(_on_flight_state_changed)
+
+func _on_flight_state_changed(_previous_state: int, current_state: int) -> void:
+	if current_state == HelgaFlightComputer.STATE_SHALLOW_REENTRY_CONTINGENCY:
+		autopilot.engaged = true
+	elif autopilot.engaged:
+		autopilot.engaged = false
 
 ## Flap lever stages -- F cycles through these in order (up, takeoff/
 ## approach, landing), like the discrete flap settings on a real
@@ -80,13 +95,20 @@ func _physics_process(delta: float) -> void:
 	if Input.is_key_pressed(KEY_D):
 		yaw_input += 1.0
 
+	if autopilot.is_engaged():
+		var target := HelgaReentryFlightPlan.get_target_flight_path_angle_deg(global_position.y)
+		autopilot.target_flight_path_angle_deg = target
+		pitch_input = autopilot.compute_elevator(reentry_system.get_flight_path_angle_deg())
+
 	if joy_count > STICK_DEVICE:
 		var jp := _get_joy_axis_or_zero(STICK_DEVICE, STICK_PITCH_AXIS)
 		var jr := _get_joy_axis_or_zero(STICK_DEVICE, STICK_ROLL_AXIS)
 		var jy := _get_joy_axis_or_zero(STICK_DEVICE, STICK_YAW_AXIS)
 		# Stick forward is a positive Y axis value on most joysticks, and
-		# should pitch the nose down -- hence the negation.
-		if jp != 0.0:
+		# should pitch the nose down -- hence the negation. Pitch is left
+		# to the autopilot's number while it's engaged -- roll/yaw stay
+		# manual either way, per src/autopilot.h's single-axis scope.
+		if jp != 0.0 and not autopilot.is_engaged():
 			pitch_input = -jp
 		if jr != 0.0:
 			roll_input = jr
@@ -126,6 +148,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_print_joypad_debug_info()
 		elif event.physical_keycode == KEY_F:
 			flap_stage_index = (flap_stage_index + 1) % FLAP_STAGES.size()
+		elif event.physical_keycode == KEY_O:
+			autopilot.engaged = not autopilot.engaged
 
 func _print_joypad_debug_info() -> void:
 	var devices := Input.get_connected_joypads()

@@ -136,7 +136,7 @@ anchor_right = 0.5
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = -140.0
-offset_top = -132.0
+offset_top = -176.0
 offset_right = 140.0
 offset_bottom = -44.0
 theme_override_constants/separation = 4
@@ -158,6 +158,19 @@ unique_name_in_owner = true
 text = "CORRIDOR   0%"
 horizontal_alignment = 1
 theme_override_colors/font_color = Color(1.0, 0.75, 0.3, 1)
+
+[node name="ProfileLabel" type="Label" parent="Root/ReentryPanel"]
+unique_name_in_owner = true
+text = "PROFILE   +0.0 deg"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.6, 0.85, 1.0, 1)
+
+[node name="AutopilotLabel" type="Label" parent="Root/ReentryPanel"]
+unique_name_in_owner = true
+visible = false
+text = "AUTOPILOT ENGAGED -- O to disconnect"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.4, 1.0, 0.55, 1)
 
 [node name="WarningLabel" type="Label" parent="Root"]
 unique_name_in_owner = true
@@ -183,5 +196,5 @@ offset_right = 360.0
 offset_bottom = -10.0
 theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(1, 1, 1, 0.7)
-text = "C: Camera    F: Flaps    G: Gear    T: Readback    R: Record    P: Replay    F12: HOTAS Debug    Esc: Menu"
+text = "C: Camera    F: Flaps    G: Gear    T: Readback    O: Autopilot    R: Record    P: Replay    F12: HOTAS Debug    Esc: Menu"
 horizontal_alignment = 1
