@@ -24,6 +24,13 @@ extends RigidBody3D
 
 @onready var aerodynamics: HelgaAerodynamics = $Aerodynamics
 @onready var propulsion: HelgaPropulsion = $Propulsion
+@onready var flight_computer: HelgaFlightComputer = $FlightComputer
+
+@export var preflight_checklist_path: NodePath
+var preflight_checklist: HelgaPreflightChecklist
+
+func _ready() -> void:
+	preflight_checklist = get_node_or_null(preflight_checklist_path) as HelgaPreflightChecklist
 
 ## Flap lever stages -- F cycles through these in order (up, takeoff/
 ## approach, landing), like the discrete flap settings on a real
@@ -100,7 +107,16 @@ func _physics_process(delta: float) -> void:
 	aerodynamics.rudder = yaw_input
 	aerodynamics.flaps = FLAP_STAGES[flap_stage_index]
 
-	propulsion.throttle = throttle
+	# Held at zero until the preflight checklist is complete, which keeps
+	# HelgaFlightComputer's own PREFLIGHT->TAXI guard condition (throttle
+	# above taxi_throttle, see flight_computer.h) from ever firing early --
+	# the C++ FSM doesn't need to know the checklist exists.
+	var effective_throttle := throttle
+	if preflight_checklist != null and flight_computer.get_current_state() == HelgaFlightComputer.PREFLIGHT and not preflight_checklist.is_complete():
+		effective_throttle = 0.0
+	propulsion.throttle = effective_throttle
+
+	flight_computer.evaluate_auto_transition(global_position.y, aerodynamics.get_airspeed(), linear_velocity.y, effective_throttle)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:

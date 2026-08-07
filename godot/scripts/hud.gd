@@ -13,6 +13,8 @@ extends CanvasLayer
 @export var replay_controller_path: NodePath
 @export var landing_gear_path: NodePath
 @export var propulsion_path: NodePath
+@export var reentry_system_path: NodePath
+@export var comms_controller_path: NodePath
 
 var aircraft: HelgaAircraftControl
 var aerodynamics: HelgaAerodynamics
@@ -21,6 +23,16 @@ var camera_rig: HelgaCameraRig
 var replay_controller: HelgaReplayController
 var landing_gear: HelgaLandingGear
 var propulsion: HelgaPropulsion
+var reentry_system: HelgaReentrySystem
+var comms_controller: HelgaCommsController
+
+## States where the reentry corridor instruments are relevant -- see
+## src/reentry_system.h's class comment for what arms the mechanic itself.
+const REENTRY_RELEVANT_STATES: Array[int] = [
+	HelgaFlightComputer.REENTRY,
+	HelgaFlightComputer.STATE_SHALLOW_REENTRY_CONTINGENCY,
+	HelgaFlightComputer.STATE_THERMAL_OVERLOAD,
+]
 
 func _ready() -> void:
 	aircraft = get_node_or_null(aircraft_path) as HelgaAircraftControl
@@ -30,6 +42,8 @@ func _ready() -> void:
 	replay_controller = get_node_or_null(replay_controller_path) as HelgaReplayController
 	landing_gear = get_node_or_null(landing_gear_path) as HelgaLandingGear
 	propulsion = get_node_or_null(propulsion_path) as HelgaPropulsion
+	reentry_system = get_node_or_null(reentry_system_path) as HelgaReentrySystem
+	comms_controller = get_node_or_null(comms_controller_path) as HelgaCommsController
 
 func _process(_delta: float) -> void:
 	if aircraft == null or aerodynamics == null:
@@ -77,10 +91,38 @@ func _process(_delta: float) -> void:
 		else:
 			%StatusLabel.text = ""
 
-	if flight_computer != null and landing_gear != null:
-		var approaching_to_land := flight_computer.get_current_state() == HelgaFlightComputer.APPROACH \
-			or flight_computer.get_current_state() == HelgaFlightComputer.LANDING
-		%WarningLabel.text = "GEAR UP" if (approaching_to_land and not landing_gear.is_extended()) else ""
+	if reentry_system != null and flight_computer != null:
+		var relevant := flight_computer.get_current_state() in REENTRY_RELEVANT_STATES
+		%ReentryPanel.visible = relevant
+		if relevant:
+			var corridor := reentry_system.get_corridor_deviation()
+			%DynamicPressureLabel.text = "Q         %5.0f Pa" % reentry_system.get_dynamic_pressure_pa()
+			%HeatFluxLabel.text = "HEAT   %6.0f kW/m2" % (reentry_system.get_heat_flux_w_m2() / 1000.0)
+			%CorridorLabel.text = "CORRIDOR   %3.0f%%" % (corridor * 100.0)
+			var corridor_color := Color(1.0, 0.3, 0.2, 1) if corridor > 0.0 else Color(1.0, 0.75, 0.3, 1)
+			%DynamicPressureLabel.modulate = corridor_color
+			%HeatFluxLabel.modulate = corridor_color
+			%CorridorLabel.modulate = corridor_color
+
+	if comms_controller != null:
+		%CommsLogLabel.text = "\n".join(comms_controller.get_log_lines())
+		if comms_controller.has_pending_readback():
+			%CommsPromptLabel.text = "[T] READBACK TO %s" % comms_controller.get_pending_station()
+		else:
+			%CommsPromptLabel.text = ""
+
+	var warning_text := ""
+	if flight_computer != null:
+		var state := flight_computer.get_current_state()
+		if state == HelgaFlightComputer.STATE_THERMAL_OVERLOAD:
+			warning_text = "THERMAL OVERLOAD"
+		elif state == HelgaFlightComputer.STATE_SHALLOW_REENTRY_CONTINGENCY:
+			warning_text = "SHALLOW ENTRY - SKIP-OUT RISK"
+		elif landing_gear != null:
+			var approaching_to_land := state == HelgaFlightComputer.APPROACH or state == HelgaFlightComputer.LANDING
+			if approaching_to_land and not landing_gear.is_extended():
+				warning_text = "GEAR UP"
+	%WarningLabel.text = warning_text
 
 func _heading_degrees() -> float:
 	var forward := -aircraft.global_transform.basis.z

@@ -41,7 +41,7 @@ void HelgaAerodynamics::_physics_process(double p_delta) {
     Vector3 com_position = body->get_global_transform().origin;
 
     double altitude = std::max(static_cast<double>(com_position.y), 0.0);
-    double air_density = air_density_sea_level * std::exp(-altitude / atmosphere_scale_height);
+    air_density = air_density_sea_level * std::exp(-altitude / atmosphere_scale_height);
 
     for (HelgaAeroSurface *surface : surfaces) {
         Transform3D surface_xform = surface->get_global_transform();
@@ -98,6 +98,7 @@ void HelgaAerodynamics::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_airspeed"), &HelgaAerodynamics::get_airspeed);
     ClassDB::bind_method(D_METHOD("get_angle_of_attack_deg"), &HelgaAerodynamics::get_angle_of_attack_deg);
     ClassDB::bind_method(D_METHOD("get_sideslip_deg"), &HelgaAerodynamics::get_sideslip_deg);
+    ClassDB::bind_method(D_METHOD("get_air_density"), &HelgaAerodynamics::get_air_density);
 
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "elevator", PROPERTY_HINT_RANGE, "-1,1,0.01"), "set_elevator", "get_elevator");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "aileron", PROPERTY_HINT_RANGE, "-1,1,0.01"), "set_aileron", "get_aileron");

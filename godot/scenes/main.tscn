@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://scripts/aircraft_control.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/camera_rig.gd" id="2"]
@@ -9,6 +9,10 @@
 [ext_resource type="Script" path="res://scripts/landing_gear.gd" id="7"]
 [ext_resource type="Script" path="res://scripts/orbit_camera.gd" id="8"]
 [ext_resource type="Script" path="res://scripts/airframe_visual.gd" id="9"]
+[ext_resource type="Script" path="res://scripts/comms_controller.gd" id="10"]
+[ext_resource type="Script" path="res://scripts/telemetry_recorder.gd" id="11"]
+[ext_resource type="PackedScene" path="res://scenes/debrief_screen.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://scenes/preflight_checklist.tscn" id="13"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_fuselage"]
 size = Vector3(6, 5.2, 36.6)
@@ -57,6 +61,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
 mass = 44000.0
 physics_material_override = SubResource("PhysicsMaterial_gear_rolling")
 script = ExtResource("1")
+preflight_checklist_path = NodePath("../PreflightChecklist")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HelgaAircraft"]
 shape = SubResource("BoxShape3D_fuselage")
@@ -71,6 +76,8 @@ script = ExtResource("9")
 [node name="AudioController" type="HelgaAudioController" parent="HelgaAircraft"]
 
 [node name="Propulsion" type="HelgaPropulsion" parent="HelgaAircraft"]
+
+[node name="ReentrySystem" type="HelgaReentrySystem" parent="HelgaAircraft"]
 
 [node name="Aerodynamics" type="HelgaAerodynamics" parent="HelgaAircraft"]
 
@@ -186,6 +193,16 @@ aircraft_path = NodePath("../HelgaAircraft")
 aerodynamics_path = NodePath("../HelgaAircraft/Aerodynamics")
 flight_computer_path = NodePath("../HelgaAircraft/FlightComputer")
 
+[node name="CommsController" type="Node" parent="."]
+script = ExtResource("10")
+flight_computer_path = NodePath("../HelgaAircraft/FlightComputer")
+
+[node name="TelemetryRecorder" type="Node" parent="."]
+script = ExtResource("11")
+aircraft_path = NodePath("../HelgaAircraft")
+flight_computer_path = NodePath("../HelgaAircraft/FlightComputer")
+reentry_system_path = NodePath("../HelgaAircraft/ReentrySystem")
+
 [node name="HUD" parent="." instance=ExtResource("5")]
 aircraft_path = NodePath("../HelgaAircraft")
 aerodynamics_path = NodePath("../HelgaAircraft/Aerodynamics")
@@ -194,6 +211,16 @@ camera_rig_path = NodePath("../CameraRig")
 replay_controller_path = NodePath("../ReplayController")
 landing_gear_path = NodePath("../HelgaAircraft/LandingGear")
 propulsion_path = NodePath("../HelgaAircraft/Propulsion")
+reentry_system_path = NodePath("../HelgaAircraft/ReentrySystem")
+comms_controller_path = NodePath("../CommsController")
 
 [node name="PauseMenu" parent="." instance=ExtResource("6")]
 replay_controller_path = NodePath("../ReplayController")
+
+[node name="DebriefScreen" parent="." instance=ExtResource("12")]
+flight_computer_path = NodePath("../HelgaAircraft/FlightComputer")
+telemetry_recorder_path = NodePath("../TelemetryRecorder")
+
+[node name="PreflightChecklist" parent="." instance=ExtResource("13")]
+propulsion_path = NodePath("../HelgaAircraft/Propulsion")
+flight_computer_path = NodePath("../HelgaAircraft/FlightComputer")

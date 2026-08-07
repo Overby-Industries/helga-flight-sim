@@ -54,6 +54,7 @@ private:
     double airspeed = 0.0;
     double angle_of_attack_deg = 0.0;
     double sideslip_deg = 0.0;
+    double air_density = 1.225;
 
     static double clamp_input(double p_value) { return p_value < -1.0 ? -1.0 : (p_value > 1.0 ? 1.0 : p_value); }
     static double clamp_unit(double p_value) { return p_value < 0.0 ? 0.0 : (p_value > 1.0 ? 1.0 : p_value); }
@@ -85,6 +86,11 @@ public:
     double get_airspeed() const { return airspeed; }
     double get_angle_of_attack_deg() const { return angle_of_attack_deg; }
     double get_sideslip_deg() const { return sideslip_deg; }
+    // Same exponential atmosphere model the lift/drag pass above already
+    // uses -- exposed so other systems (e.g. HelgaReentrySystem's dynamic
+    // pressure / heat flux) read the one atmosphere model instead of
+    // each keeping their own copy of the falloff formula.
+    double get_air_density() const { return air_density; }
 };
 
 }
