@@ -78,6 +78,11 @@ text = "THRUST    0 kN"
 unique_name_in_owner = true
 text = "PWR  100%"
 
+[node name="OrbitalVelocityLabel" type="Label" parent="Root/Instruments"]
+unique_name_in_owner = true
+visible = false
+text = "ORB VEL     0 /    0 m/s"
+
 [node name="TopRight" type="VBoxContainer" parent="Root"]
 anchor_left = 1.0
 anchor_right = 1.0

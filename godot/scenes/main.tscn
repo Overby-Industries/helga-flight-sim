@@ -59,6 +59,7 @@ surface_material_override/0 = SubResource("StandardMaterial3D_ground")
 [node name="HelgaAircraft" type="RigidBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
 mass = 44000.0
+gravity_scale = 0.0
 physics_material_override = SubResource("PhysicsMaterial_gear_rolling")
 script = ExtResource("1")
 preflight_checklist_path = NodePath("../PreflightChecklist")
@@ -74,6 +75,8 @@ script = ExtResource("9")
 [node name="FlightComputer" type="HelgaFlightComputer" parent="HelgaAircraft"]
 
 [node name="AudioController" type="HelgaAudioController" parent="HelgaAircraft"]
+
+[node name="Gravity" type="HelgaGravity" parent="HelgaAircraft"]
 
 [node name="Propulsion" type="HelgaPropulsion" parent="HelgaAircraft"]
 
@@ -213,6 +216,7 @@ landing_gear_path = NodePath("../HelgaAircraft/LandingGear")
 propulsion_path = NodePath("../HelgaAircraft/Propulsion")
 reentry_system_path = NodePath("../HelgaAircraft/ReentrySystem")
 comms_controller_path = NodePath("../CommsController")
+gravity_path = NodePath("../HelgaAircraft/Gravity")
 
 [node name="PauseMenu" parent="." instance=ExtResource("6")]
 replay_controller_path = NodePath("../ReplayController")

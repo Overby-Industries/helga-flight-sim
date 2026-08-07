@@ -79,7 +79,8 @@ private:
     double takeoff_throttle = 0.9;           // TAXI->TAKEOFF -- throttle firewalled for the roll
     double abort_throttle = 0.05;            // TAKEOFF->ABORT_TAKEOFF -- throttle chopped during the roll
     double ascent_commit_throttle = 0.9;     // CRUISE->ASCENT, and APPROACH/LANDING->GO_AROUND
-    double orbit_altitude_m = 100000.0;      // ASCENT->ORBIT -- placeholder until real orbital mechanics lands
+    double orbit_altitude_m = 100000.0;      // ASCENT->ORBIT altitude floor -- paired with orbital_velocity_fraction below
+    double orbital_velocity_fraction = 0.9;  // ASCENT->ORBIT also needs horizontal speed >= this fraction of HelgaGravity's real circular-orbit speed -- see gravity.h
     double deorbit_vspeed_ms = -5.0;         // ORBIT->REENTRY -- sustained descent reads as a deorbit burn
     double approach_altitude_m = 3000.0;     // REENTRY->APPROACH, terminal-area handoff
     double flare_altitude_m = 15.0;          // APPROACH->LANDING
@@ -109,7 +110,10 @@ public:
     // Called once per physics frame (see aircraft_control.gd) with the
     // aircraft's current telemetry. Applies at most one transition per
     // call -- see the transition table documented in flight_computer.cpp.
-    void evaluate_auto_transition(double altitude_m, double airspeed_ms, double vertical_speed_ms, double throttle);
+    // horizontal_speed_ms/orbital_velocity_ms are only consulted for the
+    // ASCENT->ORBIT check (orbital_velocity_ms comes from HelgaGravity's
+    // get_orbital_velocity_ms(), see gravity.h).
+    void evaluate_auto_transition(double altitude_m, double airspeed_ms, double vertical_speed_ms, double throttle, double horizontal_speed_ms, double orbital_velocity_ms);
 
     int get_current_state() const;
     bool is_known_state(int state) const;
@@ -131,6 +135,8 @@ public:
     void set_takeoff_throttle(double v) { takeoff_throttle = v; }
     double get_abort_throttle() const { return abort_throttle; }
     void set_abort_throttle(double v) { abort_throttle = v; }
+    double get_orbital_velocity_fraction() const { return orbital_velocity_fraction; }
+    void set_orbital_velocity_fraction(double v) { orbital_velocity_fraction = v; }
     double get_ascent_commit_throttle() const { return ascent_commit_throttle; }
     void set_ascent_commit_throttle(double v) { ascent_commit_throttle = v; }
     double get_orbit_altitude_m() const { return orbit_altitude_m; }

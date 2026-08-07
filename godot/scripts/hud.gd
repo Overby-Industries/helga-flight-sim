@@ -15,6 +15,7 @@ extends CanvasLayer
 @export var propulsion_path: NodePath
 @export var reentry_system_path: NodePath
 @export var comms_controller_path: NodePath
+@export var gravity_path: NodePath
 
 var aircraft: HelgaAircraftControl
 var aerodynamics: HelgaAerodynamics
@@ -25,6 +26,7 @@ var landing_gear: HelgaLandingGear
 var propulsion: HelgaPropulsion
 var reentry_system: HelgaReentrySystem
 var comms_controller: HelgaCommsController
+var gravity: HelgaGravity
 
 ## States where the reentry corridor instruments are relevant -- see
 ## src/reentry_system.h's class comment for what arms the mechanic itself.
@@ -32,6 +34,13 @@ const REENTRY_RELEVANT_STATES: Array[int] = [
 	HelgaFlightComputer.REENTRY,
 	HelgaFlightComputer.STATE_SHALLOW_REENTRY_CONTINGENCY,
 	HelgaFlightComputer.STATE_THERMAL_OVERLOAD,
+]
+
+## States where "how close to real orbital velocity am I" is relevant --
+## see src/gravity.h and flight_computer.cpp's ASCENT->ORBIT guard.
+const ORBITAL_VELOCITY_RELEVANT_STATES: Array[int] = [
+	HelgaFlightComputer.ASCENT,
+	HelgaFlightComputer.ORBIT,
 ]
 
 func _ready() -> void:
@@ -43,6 +52,7 @@ func _ready() -> void:
 	landing_gear = get_node_or_null(landing_gear_path) as HelgaLandingGear
 	propulsion = get_node_or_null(propulsion_path) as HelgaPropulsion
 	reentry_system = get_node_or_null(reentry_system_path) as HelgaReentrySystem
+	gravity = get_node_or_null(gravity_path) as HelgaGravity
 	comms_controller = get_node_or_null(comms_controller_path) as HelgaCommsController
 
 func _process(_delta: float) -> void:
@@ -76,6 +86,16 @@ func _process(_delta: float) -> void:
 	if propulsion != null:
 		%ThrustLabel.text = "THRUST %4d kN" % int(propulsion.get_total_thrust() / 1000.0)
 		%PowerLabel.text = "PWR  %3d%%" % int(propulsion.get_power_reserve() * 100.0)
+
+	if gravity != null and flight_computer != null:
+		var orbit_relevant := flight_computer.get_current_state() in ORBITAL_VELOCITY_RELEVANT_STATES
+		%OrbitalVelocityLabel.visible = orbit_relevant
+		if orbit_relevant:
+			var horizontal_speed := Vector2(aircraft.linear_velocity.x, aircraft.linear_velocity.z).length()
+			var target := gravity.get_orbital_velocity_ms()
+			%OrbitalVelocityLabel.text = "ORB VEL %5.0f / %5.0f m/s" % [horizontal_speed, target]
+			var reached := target > 0.0 and horizontal_speed >= 0.9 * target
+			%OrbitalVelocityLabel.modulate = Color(0.4, 1.0, 0.55, 1) if reached else Color(1.0, 0.85, 0.3, 1)
 
 	if camera_rig != null:
 		var cam := camera_rig.get_active_camera()

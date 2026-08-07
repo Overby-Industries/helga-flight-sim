@@ -53,6 +53,11 @@ bool HelgaFlightComputer::is_grounded(double altitude_m, double vertical_speed_m
 //   CLIMB                      altitude > cruise_altitude_m AND |vspeed| leveled off   CRUISE
 //   CRUISE                     throttle > ascent_commit_throttle                       ASCENT
 //   ASCENT                     altitude > orbit_altitude_m AND |vspeed| leveled off    ORBIT
+//                                 AND horizontal speed >= orbital_velocity_fraction of
+//                                 HelgaGravity's real circular-orbit speed at this
+//                                 altitude (see gravity.h) -- without this, a purely
+//                                 vertical ascent that stalls out at apogee (vspeed=0,
+//                                 no horizontal speed at all) would false-positive
 //   ORBIT                      vertical_speed < deorbit_vspeed_ms                      REENTRY
 //   REENTRY                    altitude < approach_altitude_m                          APPROACH
 //   APPROACH / LANDING         airborne AND throttle > ascent_commit_throttle          STATE_GO_AROUND
@@ -65,7 +70,7 @@ bool HelgaFlightComputer::is_grounded(double altitude_m, double vertical_speed_m
 // STATE_HOLDING_PATTERN and STATE_DIVERT (ATC/comms system),
 // STATE_SHALLOW_REENTRY_CONTINGENCY (reentry corridor system), FAULT
 // (any system detecting a genuine failure).
-void HelgaFlightComputer::evaluate_auto_transition(double altitude_m, double airspeed_ms, double vertical_speed_ms, double throttle) {
+void HelgaFlightComputer::evaluate_auto_transition(double altitude_m, double airspeed_ms, double vertical_speed_ms, double throttle, double horizontal_speed_ms, double orbital_velocity_ms) {
     bool grounded = is_grounded(altitude_m, vertical_speed_ms);
     bool climbing_away = altitude_m > airborne_climb_altitude_m && vertical_speed_ms > 0.0;
 
@@ -103,7 +108,8 @@ void HelgaFlightComputer::evaluate_auto_transition(double altitude_m, double air
             }
             break;
         case ASCENT:
-            if (altitude_m > orbit_altitude_m && std::fabs(vertical_speed_ms) < level_off_vspeed_ms) {
+            if (altitude_m > orbit_altitude_m && std::fabs(vertical_speed_ms) < level_off_vspeed_ms
+                    && horizontal_speed_ms >= orbital_velocity_fraction * orbital_velocity_ms) {
                 transition_to(ORBIT);
             }
             break;
@@ -233,7 +239,7 @@ void HelgaFlightComputer::on_state_exit(int state) {
 
 void HelgaFlightComputer::_bind_methods() {
     ClassDB::bind_method(D_METHOD("transition_to", "next_state"), &HelgaFlightComputer::transition_to);
-    ClassDB::bind_method(D_METHOD("evaluate_auto_transition", "altitude_m", "airspeed_ms", "vertical_speed_ms", "throttle"), &HelgaFlightComputer::evaluate_auto_transition);
+    ClassDB::bind_method(D_METHOD("evaluate_auto_transition", "altitude_m", "airspeed_ms", "vertical_speed_ms", "throttle", "horizontal_speed_ms", "orbital_velocity_ms"), &HelgaFlightComputer::evaluate_auto_transition);
     ClassDB::bind_method(D_METHOD("get_current_state"), &HelgaFlightComputer::get_current_state);
     ClassDB::bind_method(D_METHOD("is_known_state", "state"), &HelgaFlightComputer::is_known_state);
     ClassDB::bind_method(D_METHOD("state_name", "state"), &HelgaFlightComputer::state_name);
@@ -254,6 +260,8 @@ void HelgaFlightComputer::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_takeoff_throttle", "value"), &HelgaFlightComputer::set_takeoff_throttle);
     ClassDB::bind_method(D_METHOD("get_abort_throttle"), &HelgaFlightComputer::get_abort_throttle);
     ClassDB::bind_method(D_METHOD("set_abort_throttle", "value"), &HelgaFlightComputer::set_abort_throttle);
+    ClassDB::bind_method(D_METHOD("get_orbital_velocity_fraction"), &HelgaFlightComputer::get_orbital_velocity_fraction);
+    ClassDB::bind_method(D_METHOD("set_orbital_velocity_fraction", "value"), &HelgaFlightComputer::set_orbital_velocity_fraction);
     ClassDB::bind_method(D_METHOD("get_ascent_commit_throttle"), &HelgaFlightComputer::get_ascent_commit_throttle);
     ClassDB::bind_method(D_METHOD("set_ascent_commit_throttle", "value"), &HelgaFlightComputer::set_ascent_commit_throttle);
     ClassDB::bind_method(D_METHOD("get_orbit_altitude_m"), &HelgaFlightComputer::get_orbit_altitude_m);
@@ -281,6 +289,7 @@ void HelgaFlightComputer::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "taxi_throttle", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_taxi_throttle", "get_taxi_throttle");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "takeoff_throttle", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_takeoff_throttle", "get_takeoff_throttle");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "abort_throttle", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_abort_throttle", "get_abort_throttle");
+    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "orbital_velocity_fraction", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_orbital_velocity_fraction", "get_orbital_velocity_fraction");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "ascent_commit_throttle", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_ascent_commit_throttle", "get_ascent_commit_throttle");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "orbit_altitude_m"), "set_orbit_altitude_m", "get_orbit_altitude_m");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "deorbit_vspeed_ms"), "set_deorbit_vspeed_ms", "get_deorbit_vspeed_ms");

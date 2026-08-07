@@ -25,6 +25,7 @@ extends RigidBody3D
 @onready var aerodynamics: HelgaAerodynamics = $Aerodynamics
 @onready var propulsion: HelgaPropulsion = $Propulsion
 @onready var flight_computer: HelgaFlightComputer = $FlightComputer
+@onready var gravity: HelgaGravity = $Gravity
 
 @export var preflight_checklist_path: NodePath
 var preflight_checklist: HelgaPreflightChecklist
@@ -116,7 +117,8 @@ func _physics_process(delta: float) -> void:
 		effective_throttle = 0.0
 	propulsion.throttle = effective_throttle
 
-	flight_computer.evaluate_auto_transition(global_position.y, aerodynamics.get_airspeed(), linear_velocity.y, effective_throttle)
+	var horizontal_speed := Vector2(linear_velocity.x, linear_velocity.z).length()
+	flight_computer.evaluate_auto_transition(global_position.y, aerodynamics.get_airspeed(), linear_velocity.y, effective_throttle, horizontal_speed, gravity.get_orbital_velocity_ms())
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:

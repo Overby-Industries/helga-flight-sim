@@ -7,6 +7,7 @@
 #include "airframe.h"
 #include "propulsion.h"
 #include "reentry_system.h"
+#include "gravity.h"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
@@ -26,6 +27,7 @@ void initialize_helga_flight_sim_module(ModuleInitializationLevel p_level) {
     ClassDB::register_class<HelgaAirframe>();
     ClassDB::register_class<HelgaPropulsion>();
     ClassDB::register_class<HelgaReentrySystem>();
+    ClassDB::register_class<HelgaGravity>();
 }
 
 void uninitialize_helga_flight_sim_module(ModuleInitializationLevel p_level) {
