@@ -13,12 +13,23 @@
 //
 // A fixed-size grid of square chunks (see grid_radius/chunk_size) is kept
 // centered on a follow target (the aircraft) in whole-chunk steps: each
-// physics frame checks which chunk cell the target is in, and only when
-// that cell changes does the whole grid regenerate around the new center.
-// This is a full-grid regenerate, not a ring/clipmap update -- simpler to
-// get right, and cheap enough at this chunk count/resolution not to
-// hitch, but a real clipmap would be the next step if chunk_size/
-// grid_radius ever need to grow much from their current tuning.
+// physics frame checks which chunk cell the target is in, and if that
+// cell changed, resyncs the grid around the new center -- but only
+// chunk *slots* whose assigned world cell actually changed get rebuilt
+// (each Chunk remembers its own current cell), rather than the previous
+// full-grid rebuild on every crossing. This is both a perf win (a full
+// 9x9 regenerate on every ~800m of travel was wasted work -- a chunk's
+// height data can't change once its cell is fixed, the noise field is
+// deterministic) and removes a real hazard: rebuilding a chunk replaces
+// its StaticBody3D's CollisionShape3D.shape with a fresh
+// Ref<ConcavePolygonShape3D>, and anything resting on that exact chunk
+// loses ground contact for the tick the physics server takes to
+// register the new shape. A full-grid rebuild did this to the chunk the
+// aircraft was *currently standing on* too. This wasn't confirmed to be
+// the cause of a real ground-clipping issue found this same session
+// (see aircraft_control.gd's ground-recovery safety net for what that
+// turned out to trace to), but it's a real gap in its own right and
+// worth having closed regardless.
 //
 // Height comes from a single FastNoiseLite field sampled in *world*
 // space (not chunk-local), so adjacent chunks' shared edge vertices
@@ -64,6 +75,8 @@ private:
         MeshInstance3D *mesh_instance = nullptr;
         StaticBody3D *body = nullptr;
         CollisionShape3D *collision = nullptr;
+        Vector2i cell;
+        bool has_cell = false;
     };
 
     NodePath follow_target_path;
@@ -79,10 +92,16 @@ private:
     int grid_radius = 4;               // chunks out from center in each direction
     double chunk_size = 800.0;         // meters per chunk edge
     int subdivisions = 4;              // quads per chunk edge (5x5 verts)
-    double height_amplitude = 260.0;   // meters, peak relief
+    double height_amplitude = 90.0;    // meters, peak relief -- gentle rolling terrain,
+                                        // not the sim's own mountains: a full-elevator
+                                        // takeoff roll gone wrong (see aircraft_control.gd's
+                                        // ground-recovery safety net) shouldn't be able to
+                                        // sink into a 200m+ valley a couple km out and read
+                                        // as "fell through the world."
     double noise_frequency = 1.0 / 1800.0;
-    double flatten_radius_m = 1200.0;  // fully flat within this radius of world origin
-    double flatten_blend_m = 800.0;    // ramps to full relief over this additional distance
+    double flatten_radius_m = 2000.0;  // fully flat within this radius of world origin --
+                                        // covers a full early takeoff/landing roll with margin
+    double flatten_blend_m = 1500.0;   // ramps to full relief over this additional distance
     double hide_above_altitude_m = 30000.0;
 
     double height_at(double world_x, double world_z) const;

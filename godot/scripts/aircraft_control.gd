@@ -28,6 +28,7 @@ extends RigidBody3D
 @onready var gravity: HelgaGravity = $Gravity
 @onready var reentry_system: HelgaReentrySystem = $ReentrySystem
 @onready var autopilot: HelgaAutopilot = $Autopilot
+@onready var terrain: Node = get_node_or_null("../Terrain")
 
 @export var preflight_checklist_path: NodePath
 var preflight_checklist: HelgaPreflightChecklist
@@ -141,6 +142,35 @@ func _physics_process(delta: float) -> void:
 
 	var horizontal_speed := Vector2(linear_velocity.x, linear_velocity.z).length()
 	flight_computer.evaluate_auto_transition(global_position.y, aerodynamics.get_airspeed(), linear_velocity.y, effective_throttle, horizontal_speed, gravity.get_orbital_velocity_ms())
+
+	# Safety net against clipping through the ground: a fast, rotating
+	# rigid body can outrun Jolt's own contact resolution for a tick or
+	# two right at the moment it leaves/re-touches the ground (seen
+	# headless: a hard rotation off the runway at ~60 m/s could punch the
+	# fuselage 40+ meters below grade, with Jolt's own penetration
+	# recovery only clawing it back out over the following several
+	# seconds -- technically self-correcting eventually, but "the runway
+	# disappears and the world tunnels" for that whole stretch, and once
+	# it's that deep, a soft one-axis nudge back toward the surface isn't
+	# enough to break it out of whatever bad contact state it's in --
+	# each tick's correction was getting outpaced by the next tick's fall).
+	# This is a hard reset once things are unambiguously wrong (well past
+	# any tolerance a real gear-contact bounce would need), not a subtle
+	# correction: it zeroes all velocity and levels the aircraft out
+	# rather than just nudging Y, specifically to break out of a
+	# tumble-while-interpenetrating state rather than feed it another
+	# tick of bad contact data. This doesn't replace fixing the
+	# underlying contact behavior; it just guarantees the aircraft is
+	# never left visibly and lastingly below the terrain it's standing on.
+	if terrain != null:
+		var ground_height: float = terrain.get_height_at(global_position.x, global_position.z)
+		if global_position.y < ground_height - 2.0:
+			var recovery_transform := global_transform
+			recovery_transform.origin.y = ground_height + 3.0
+			recovery_transform.basis = Basis.from_euler(Vector3(0.0, recovery_transform.basis.get_euler().y, 0.0))
+			global_transform = recovery_transform
+			linear_velocity = Vector3.ZERO
+			angular_velocity = Vector3.ZERO
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:

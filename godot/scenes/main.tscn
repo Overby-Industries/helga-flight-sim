@@ -17,6 +17,12 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_fuselage"]
 size = Vector3(6, 5.2, 36.6)
 
+[sub_resource type="SphereShape3D" id="SphereShape3D_nose_wheel"]
+radius = 0.4
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_main_wheel"]
+radius = 0.515
+
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_gear_rolling"]
 friction = 0.02
 
@@ -67,11 +73,25 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
 mass = 44000.0
 gravity_scale = 0.0
 physics_material_override = SubResource("PhysicsMaterial_gear_rolling")
+continuous_cd = true
 script = ExtResource("1")
 preflight_checklist_path = NodePath("../PreflightChecklist")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HelgaAircraft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
 shape = SubResource("BoxShape3D_fuselage")
+
+[node name="NoseWheelCollision" type="CollisionShape3D" parent="HelgaAircraft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.2, -9.15)
+shape = SubResource("SphereShape3D_nose_wheel")
+
+[node name="LeftWheelCollision" type="CollisionShape3D" parent="HelgaAircraft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.745, -2.085, 13.46)
+shape = SubResource("SphereShape3D_main_wheel")
+
+[node name="RightWheelCollision" type="CollisionShape3D" parent="HelgaAircraft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.745, -2.085, 13.46)
+shape = SubResource("SphereShape3D_main_wheel")
 
 [node name="Visual" type="Node3D" parent="HelgaAircraft"]
 script = ExtResource("9")
@@ -130,7 +150,7 @@ stall_angle_deg = 18.0
 stall_blend_range_deg = 10.0
 parasite_drag_coefficient = 0.02
 induced_drag_factor = 0.05
-control_effectiveness = 0.5
+control_effectiveness = 0.7
 elevator_gain = -1.0
 
 [node name="LandingGear" type="Node3D" parent="HelgaAircraft"]

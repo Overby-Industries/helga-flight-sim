@@ -117,7 +117,18 @@ void HelgaTerrain::rebuild_grid() {
     for (int j = 0; j < span; ++j) {
         for (int i = 0; i < span; ++i) {
             Vector2i cell = center_cell + Vector2i(i - grid_radius, j - grid_radius);
-            build_chunk(chunks[static_cast<size_t>(j * span + i)], cell);
+            Chunk &chunk = chunks[static_cast<size_t>(j * span + i)];
+            // Skip chunks whose assigned cell hasn't moved -- their
+            // height data can't have changed (the noise field is
+            // deterministic), and re-assigning an identical shape would
+            // still drop anything resting on it for a tick. See the
+            // class comment in terrain.h.
+            if (chunk.has_cell && chunk.cell == cell) {
+                continue;
+            }
+            build_chunk(chunk, cell);
+            chunk.cell = cell;
+            chunk.has_cell = true;
         }
     }
 }
