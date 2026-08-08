@@ -9,6 +9,8 @@
 #include "reentry_system.h"
 #include "gravity.h"
 #include "autopilot.h"
+#include "terrain.h"
+#include "atmosphere.h"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
@@ -30,6 +32,8 @@ void initialize_helga_flight_sim_module(ModuleInitializationLevel p_level) {
     ClassDB::register_class<HelgaReentrySystem>();
     ClassDB::register_class<HelgaGravity>();
     ClassDB::register_class<HelgaAutopilot>();
+    ClassDB::register_class<HelgaTerrain>();
+    ClassDB::register_class<HelgaAtmosphere>();
 }
 
 void uninitialize_helga_flight_sim_module(ModuleInitializationLevel p_level) {
